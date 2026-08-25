@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loopstack</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+        @import url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --green: #39FF14;
+            --line: rgba(255, 255, 255, 0.18);
+            --muted-55: rgba(255, 255, 255, 0.55);
+            --muted-45: rgba(255, 255, 255, 0.45);
+            --divider: rgba(255, 255, 255, 0.2);
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-reveal: cubic-bezier(0.05, 0.9, 0.1, 1);
+        }
+
+        body {
+            background-color: #000000;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 50% -10%, rgba(57, 255, 20, 0.07), transparent 60%),
+                radial-gradient(ellipse 60% 40% at 90% 110%, rgba(57, 255, 20, 0.05), transparent 60%);
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        /* ---------- Top gradient overlay ---------- */
+        #top-gradient {
+            position: fixed;
+            top: -30vh;
+            left: 0;
+            width: 100vw;
+            height: auto;
+            display: block;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ---------- Background video ---------- */
+        .video-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 90vh;
+            overflow: hidden;
+            z-index: -1;
+            transition: opacity 0.5s ease;
+        }
+        #bg-video {
+            width: 100%;
+            height: 110%;
+            object-fit: cover;
+            display: block;
+            transform: translateY(0%);
+        }
+        body:not([data-route="home"]):not([data-route="contact"]) .video-container {
+            opacity: 0;
+        }
+
+        /* ---------- Hero content (home) ---------- */
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding-top: 6vh;
+            width: 95%;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 2.8rem;
+            font-weight: 400;
+            color: #ffffff;
+            line-height: 1.15;
+            margin-bottom: 2.2rem;
+            letter-spacing: -0.015em;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .hero-btn {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            color: #ffffff;
+            background-color: #000000;
+            border: 1px solid var(--line);
+            padding: 1.3rem 2.5rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.9rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s var(--ease-out);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.4);
+            outline: none;
+        }
+        .hero-btn:hover {
+            background-color: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.3);
+        }
+        .hero-btn:active { transform: translateY(0); }
+        .hero-btn.btn-sm {
+            font-size: 0.95rem;
+            padding: 0.9rem 1.8rem;
+            gap: 0.6rem;
+            justify-content: center;
+        }
+        .hero-btn.btn-light {
+            background-color: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+        }
+        .hero-btn.btn-light:hover {
+            background-color: var(--green);
+            border-color: var(--green);
+            color: #000000;
+            box-shadow: 0 6px 30px rgba(57, 255, 20, 0.25);
+        }
+
+        /* ---------- Blinking neon dot ---------- */
+        .blinking-dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--green);
+            border-radius: 50%;
+            position: relative;
+            display: inline-block;
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+        .blinking-dot::after {
+            content: '';
+            position: absolute;
+            top: -5px; left: -5px; right: -5px; bottom: -5px;
+            background-color: rgba(57, 255, 20, 0.45);
+            border-radius: 50%;
+            animation: wave-expand 2s infinite ease-in-out;
+        }
+        @keyframes pulse-glow {
+            0%, 100% {
+                opacity: 0.5;
+                transform: scale(0.85);
+                box-shadow: 0 0 4px rgba(57, 255, 20, 0.3);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+                box-shadow: 0 0 12px rgba(57, 255, 20, 0.9);
+            }
+        }
+        @keyframes wave-expand {
+            0%   { transform: scale(0.6); opacity: 0.9; }
+            100% { transform: scale(2.3); opacity: 0; }
+        }
+
+        /* ---------- Home footer block ---------- */
+        .footer-container {
+            position: fixed;
+            top: 50vh;
+            left: 20px;
+            right: 20px;
+            width: calc(100vw - 40px);
+            transform: translateY(-50%);
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+        }
+        .footer-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            width: 100%;
+            padding: 0 5px;
+        }
+        .footer-title {
+            font-family: 'General Sans', -apple-system, sans-serif;
+            font-size: 1.4rem;
+            font-weight: 400;
+            color: #ffffff;
+            letter-spacing: -0.015em;
+            margin: 0;
+        }
+        .footer-title.quote { text-transform: none; }
+        .footer-divider {
+            border: none;
+            height: 1px;
+            background-color: var(--divider);
+            margin: 1.6rem 0;
+            width: 100%;
+        }
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 0 5px;
+        }
+        .footer-socials {
+            display: flex;
+            gap: 1.25rem;
+            align-items: center;
+            flex: 1;
+        }
+        .social-icon {
+            color: var(--muted-55);
+            transition: all 0.3s var(--ease-out);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        .social-icon:hover {
+            color: #ffffff;
+            transform: translateY(-2px);
+        }
+        .footer-links {
+            display: flex;
+            gap: 2.8rem;
+            justify-content: center;
+            align-items: center;
+            flex: 2;
+        }
+        .footer-link {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: #ffffff;
+            text-decoration: none;
+            letter-spacing: 0.03em;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .footer-link:hover {
+            opacity: 0.75;
+            transform: translateY(-1px);
+        }
+        .footer-copyright {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: var(--muted-45);
+            text-align: right;
+            flex: 1;
+            letter-spacing: 0.02em;
+        }
+
+        /* ---------- Giant wordmark ---------- */
+        .footer-logo-wrap {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            width: 100%;
+            padding: 0 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3;
+            margin: 0;
+        }
+        .footer-logo-text {
+            font-family: 'General Sans', -apple-system, sans-serif;
+            font-size: 21.9vw;
+            font-weight: 400;
+            color: #ffffff;
+            letter-spacing: -0.03em;
+            margin-right: -0.03em;
+            transform: translateX(-20px);
+            line-height: 0.8;
+            margin: 0;
+            text-align: center;
+            width: 100%;
+            pointer-events: none;
+            opacity: 0.95;
+            text-shadow: none;
+            white-space: nowrap;
+        }
+        .letter-wrapper {
+            display: inline-block;
+            overflow: hidden;
+            vertical-align: bottom;
+            line-height: 0.8;
+        }
+        .letter-inner {
+            display: inline-block;
+            opacity: 0;
+            transform: translateX(-105%);
+            filter: blur(20px);
+            animation: letter-reveal-mask 1.2s var(--ease-reveal) forwards;
+        }
+        @keyframes letter-reveal-mask {
+            0%   { opacity: 0; transform: translateX(-105%); filter: blur(20px); }
+            25%  { opacity: 1; }
+            100% { opacity: 0.95; transform: translateX(0); filter: blur(0); }
+        }
+
+        /* ---------- Word reveal (titles) ---------- */
+        .word-wrapper {
+            display: inline-block;
+            overflow: hidden;
+            vertical-align: bottom;
+            padding-bottom: 0.15em;
+            margin-bottom: -0.15em;
+        }
+        .word-inner {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(105%);
+            filter: blur(20px);
+            animation: word-reveal-mask 1.3s var(--ease-reveal) forwards;
+        }
+        @keyframes word-reveal-mask {
+            0%   { opacity: 0; transform: translateY(105%); filter: blur(20px); }
+            30%  { opacity: 1; }
+            100% { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+
+        /* ---------- Staggered reveal items ---------- */
+        .reveal-item {
+            opacity: 0;
+            transform: translateY(24px);
+            filter: blur(8px);
+        }
+        .reveal-item.in {
+            opacity: 1;
+            transform: translateY(0);
+            filter: blur(0);
+            transition: all 0.9s var(--ease-reveal);
+        }
+
+        /* ---------- Shared chrome (topbar / bottombar) ---------- */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 28px;
+            z-index: 50;
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+        .brand {
+            font-family: 'General Sans', -apple-system, sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: #ffffff;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            transition: opacity 0.3s var(--ease-out);
+        }
+        .brand:hover { opacity: 0.75; }
+        .brand::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background-color: var(--green);
+            border-radius: 50%;
+            margin-left: 0.5rem;
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+        .topnav { display: flex; gap: 2rem; align-items: center; }
+        .topnav-link {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: var(--muted-55);
+            text-decoration: none;
+            letter-spacing: 0.03em;
+            transition: color 0.3s ease, transform 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+        .topnav-link:hover { color: #ffffff; transform: translateY(-1px); }
+        .topnav-link.active { color: #ffffff; }
+        .topnav-link.active::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background-color: var(--green);
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 8px rgba(57, 255, 20, 0.7);
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+        .bottombar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 28px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 50;
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+        .bottombar-left {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: var(--muted-45);
+            letter-spacing: 0.02em;
+        }
+        .bottombar-socials { display: flex; gap: 1.25rem; align-items: center; }
+        body.at-home .topbar {
+            opacity: 0;
+            transform: translateY(-10px);
+            pointer-events: none;
+        }
+        body.at-home .bottombar {
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+        }
+
+        /* ---------- Views / router ---------- */
+        .view { display: none; }
+        .view.active { display: block; }
+        .view {
+            opacity: 1;
+            transition: opacity 0.32s ease;
+        }
+        .view.entering,
+        .view.leaving { opacity: 0; }
+        .view-sub {
+            position: fixed;
+            inset: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 2;
+        }
+        .view-sub.active { display: block; }
+
+        .page {
+            position: relative;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 120px 28px 100px;
+        }
+        .page.page--center {
+            align-items: center;
+            text-align: center;
+            max-width: 720px;
+            padding-bottom: 110px;
+        }
+
+        .kicker {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 500;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--green);
+        }
+        .page-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: clamp(2.2rem, 5vw, 3.4rem);
+            font-weight: 400;
+            line-height: 1.12;
+            letter-spacing: -0.015em;
+            text-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            margin: 1.1rem 0 1.6rem;
+        }
+        .page-title .accent { color: var(--green); font-style: italic; }
+        .page-text {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 300;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.72);
+            max-width: 640px;
+        }
+
+        /* ---------- About ---------- */
+        .stats-row {
+            display: flex;
+            gap: 4.5rem;
+            flex-wrap: wrap;
+            margin-top: 3.2rem;
+        }
+        .stat-value {
+            font-family: 'General Sans', -apple-system, sans-serif;
+            font-size: 2.3rem;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+        }
+        .stat-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: var(--muted-45);
+            margin-top: 0.35rem;
+            letter-spacing: 0.02em;
+        }
+        .about-quote {
+            margin-top: 3.2rem;
+            padding-left: 1.25rem;
+            border-left: 2px solid var(--green);
+        }
+        .about-quote p {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-style: italic;
+            font-size: 1.3rem;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.85);
+            max-width: 560px;
+        }
+        .about-quote cite {
+            display: block;
+            margin-top: 0.8rem;
+            font-family: 'Outfit', sans-serif;
+            font-style: normal;
+            font-size: 0.85rem;
+            color: var(--muted-45);
+            letter-spacing: 0.04em;
+        }
+
+        /* ---------- Features ---------- */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            width: 100%;
+            margin-top: 0.6rem;
+        }
+        .feature-card {
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 18px;
+            padding: 1.75rem 1.5rem;
+            transition: all 0.35s var(--ease-out);
+        }
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(57, 255, 20, 0.5);
+            box-shadow: 0 10px 40px rgba(57, 255, 20, 0.07);
+        }
+        .feature-icon {
+            color: var(--green);
+            display: inline-flex;
+            filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.35));
+        }
+        .feature-title {
+            font-family: 'General Sans', -apple-system, sans-serif;
+            font-size: 1.02rem;
+            font-weight: 500;
+            margin-top: 1.1rem;
+            letter-spacing: -0.01em;
+        }
+        .feature-desc {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 300;
+            line-height: 1.55;
+            color: rgba(255, 255, 255, 0.65);
+            margin-top: 0.5rem;
+        }
+
+        /* ---------- Pricing ---------- */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+            max-width: 1080px;
+            margin-top: 0.6rem;
+        }
+        .price-card {
+            position: relative;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 22px;
+            padding: 2.2rem 1.9rem;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.35s var(--ease-out);
+        }
+        .price-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+        .price-card.featured {
+            border-color: rgba(57, 255, 20, 0.55);
+            box-shadow: 0 0 50px rgba(57, 255, 20, 0.08);
+        }
+        .price-card.featured:hover {
+            border-color: rgba(57, 255, 20, 0.8);
+            box-shadow: 0 12px 55px rgba(57, 255, 20, 0.12);
+        }
+        .badge {
+            position: absolute;
+            top: -13px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--green);
+            color: #000000;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            padding: 0.35em 1em;
+            border-radius: 9999px;
+            box-shadow: 0 0 18px rgba(57, 255, 20, 0.45);
+            white-space: nowrap;
+        }
+        .tier {
+            font-family: 'General Sans', -apple-system, sans-serif;
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--muted-55);
+            letter-spacing: 0.02em;
+        }
+        .amount {
+            font-family: 'General Sans', -apple-system, sans-serif;
+            font-size: clamp(1.7rem, 1.4rem + 1vw, 2.2rem);
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+            margin-top: 0.6rem;
+            white-space: nowrap;
+        }
+        .per {
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: var(--muted-45);
+            letter-spacing: 0;
+        }
+        .tier-desc {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 300;
+            line-height: 1.55;
+            color: rgba(255, 255, 255, 0.65);
+            margin-top: 0.6rem;
+        }
+        .feat-list {
+            list-style: none;
+            margin: 1.6rem 0 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            flex: 1;
+        }
+        .feat-list li {
+            position: relative;
+            padding-left: 1.15rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.75);
+        }
+        .feat-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0.52em;
+            width: 5px;
+            height: 5px;
+            background-color: var(--green);
+            border-radius: 1px;
+            box-shadow: 0 0 6px rgba(57, 255, 20, 0.6);
+        }
+        .pricing-note {
+            margin-top: 2.2rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 300;
+            color: var(--muted-45);
+            letter-spacing: 0.02em;
+        }
+        .pricing-note a {
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(57, 255, 20, 0.5);
+            transition: color 0.3s ease;
+        }
+        .pricing-note a:hover { color: var(--green); }
+
+        /* ---------- Contact ---------- */
+        .page-title.contact-title { font-size: clamp(2.4rem, 5.5vw, 3.8rem); }
+        .page-sub {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 300;
+            line-height: 1.65;
+            color: rgba(255, 255, 255, 0.72);
+            max-width: 520px;
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.6);
+        }
+        .email-link {
+            display: inline-block;
+            margin-top: 1.6rem;
+            font-family: 'General Sans', -apple-system, sans-serif;
+            font-size: 1.35rem;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            color: #ffffff;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(57, 255, 20, 0.5);
+            padding-bottom: 0.2rem;
+            transition: all 0.3s var(--ease-out);
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.6);
+        }
+        .email-link:hover {
+            color: var(--green);
+            border-bottom-color: var(--green);
+            text-shadow: 0 0 20px rgba(57, 255, 20, 0.35);
+        }
+        .contact-channels {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.6rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .channel-card {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.85rem 1.4rem;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 9999px;
+            text-decoration: none;
+            transition: all 0.3s var(--ease-out);
+        }
+        .channel-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(57, 255, 20, 0.55);
+            box-shadow: 0 6px 25px rgba(57, 255, 20, 0.12);
+        }
+        .channel-icon {
+            color: var(--green);
+            display: inline-flex;
+            filter: drop-shadow(0 0 8px rgba(57, 255, 20, 0.35));
+        }
+        .channel-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .channel-label {
+            font-family: 'General Sans', -apple-system, sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #ffffff;
+            letter-spacing: 0.02em;
+        }
+        .channel-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 300;
+            color: var(--muted-45);
+            letter-spacing: 0.03em;
+        }
+        .contact-form {
+            width: 100%;
+            max-width: 540px;
+            margin-top: 2.8rem;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .field label {
+            display: block;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--muted-45);
+            margin-bottom: 0.4rem;
+        }
+        .field input,
+        .field textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--divider);
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 300;
+            padding: 0.7rem 0;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+        .field textarea { resize: none; min-height: 88px; }
+        .field input:focus,
+        .field textarea:focus { border-bottom-color: var(--green); }
+        .field input::placeholder,
+        .field textarea::placeholder { color: rgba(255, 255, 255, 0.28); }
+        .form-error {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.82rem;
+            color: #ff5f56;
+            min-height: 1.1em;
+            letter-spacing: 0.02em;
+        }
+        .form-success {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2.8rem;
+            text-align: center;
+        }
+        .form-success.show { display: flex; }
+        .success-icon {
+            color: var(--green);
+            filter: drop-shadow(0 0 12px rgba(57, 255, 20, 0.5));
+            animation: success-pop 0.7s var(--ease-out) forwards;
+        }
+        @keyframes success-pop {
+            0%   { transform: scale(0); opacity: 0; }
+            70%  { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .success-title {
+            font-family: 'Playfair Display', Georgia, serif;
+            font-size: 1.6rem;
+            font-weight: 400;
+        }
+        .success-note {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.92rem;
+            font-weight: 300;
+            color: rgba(255, 255, 255, 0.65);
+        }
+        .reply-note {
+            margin-top: 1.4rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 300;
+            color: var(--muted-45);
+            letter-spacing: 0.02em;
+            text-shadow: 0 2px 15px rgba(0, 0, 0, 0.6);
+        }
+
+        /* ---------- Cursor ring ---------- */
+        .cursor-ring-outline {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 48px;
+            height: 48px;
+            border: 1.5px solid rgba(255, 255, 255, 0.45);
+            border-radius: 50%;
+            z-index: 99998;
+            pointer-events: none;
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            will-change: transform, opacity;
+            transition: opacity 0.4s var(--ease-out), border-color 0.4s ease;
+        }
+        .cursor-ring-outline.active { opacity: 1; }
+        .cursor-ring-outline.expanded { border-color: rgba(255, 255, 255, 0.15); }
+
+        @media (pointer: coarse) {
+            .cursor-ring-outline { display: none; }
+        }
+
+        /* ---------- Responsive ---------- */
+        @media (max-width: 900px) {
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .pricing-grid { grid-template-columns: 1fr; max-width: 480px; }
+        }
+        @media (max-width: 640px) {
+            .topnav { gap: 1.1rem; }
+            .topnav-link { font-size: 0.85rem; }
+            .footer-links { gap: 1.4rem; }
+            .features-grid { grid-template-columns: 1fr; }
+            .stats-row { gap: 2.2rem; }
+            .footer-copyright { font-size: 0.8rem; }
+            .email-link { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body data-route="home">
+
+    <img src="https://api.getlayers.ai/storage/v1/object/public/public/assets/loopstack-f8c64439bf/black_gradient.svg" alt="Top Gradient" id="top-gradient">
+
+    <header class="topbar" id="topbar">
+        <a href="#/" class="brand" data-nav>Loopstack</a>
+        <nav class="topnav">
+            <a href="#/" class="topnav-link" data-nav data-route-name="home">Home</a>
+            <a href="#/about" class="topnav-link" data-nav data-route-name="about">About</a>
+            <a href="#/features" class="topnav-link" data-nav data-route-name="features">Features</a>
+            <a href="#/pricing" class="topnav-link" data-nav data-route-name="pricing">Pricing</a>
+            <a href="#/contact" class="topnav-link" data-nav data-route-name="contact">Contact</a>
+        </nav>
+    </header>
+
+    <section class="view" id="view-home">
+        <main class="hero-content">
+            <h1 class="hero-title" data-split="words">Apply Now to be part <br> of the closed beta</h1>
+            <a href="#/contact" class="hero-btn" role="button" data-nav>
+                <span class="btn-text">Book a demo</span>
+                <span class="blinking-dot"></span>
+            </a>
+        </main>
+
+        <footer class="footer-container">
+            <div class="footer-top">
+                <h2 class="footer-title">Stay in Touch</h2>
+                <h2 class="footer-title quote">Think. Build. Repeat.</h2>
+            </div>
+
+            <hr class="footer-divider">
+
+            <div class="footer-bottom">
+                <div class="footer-socials">
+                    <a href="mailto:mugishadavid910@gmail.com" aria-label="Email" class="social-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    </a>
+                    <a href="https://wa.me/250796888684?text=Hi%20there!" target="_blank" rel="noopener" aria-label="WhatsApp" class="social-icon">
+                        <svg width="17" height="19" viewBox="0 0 448 512" fill="currentColor"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"></path></svg>
+                    </a>
+                    <a href="https://github.com/mugi-sha" target="_blank" rel="noopener" aria-label="GitHub" class="social-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                    </a>
+                    <a href="https://instagram.com/davidmenelik910" target="_blank" rel="noopener" aria-label="Instagram" class="social-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    </a>
+                </div>
+
+                <nav class="footer-links">
+                    <a href="#/" class="footer-link" data-nav>Home</a>
+                    <a href="#/about" class="footer-link" data-nav>About</a>
+                    <a href="#/features" class="footer-link" data-nav>Features</a>
+                    <a href="#/pricing" class="footer-link" data-nav>Pricing</a>
+                    <a href="#/contact" class="footer-link" data-nav>Contact</a>
+                </nav>
+
+                <div class="footer-copyright">
+                    © 2026 Loopstack
+                </div>
+            </div>
+        </footer>
+
+        <div class="footer-logo-wrap">
+            <h2 class="footer-logo-text" data-split="letters">Loopstack</h2>
+        </div>
+    </section>
+
+    <section class="view view-sub" id="view-about">
+        <div class="page">
+            <div class="kicker reveal-item">About</div>
+            <h1 class="page-title" data-split="words">We ship in loops, not launches.</h1>
+            <p class="page-text reveal-item">Loopstack is a small team building a closed beta for people who turn ideas into products on repeat. One workspace takes you from raw thought to shipped release — capture, build, measure, repeat.</p>
+
+            <div class="stats-row reveal-item">
+                <div class="stat">
+                    <div class="stat-value" data-count="4200" data-suffix="+">4,200+</div>
+                    <div class="stat-label">Beta testers onboard</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" data-count="99.98" data-decimals="2" data-suffix="%">99.98%</div>
+                    <div class="stat-label">Uptime, last 90 days</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" data-count="3.2" data-decimals="1" data-suffix="s">3.2s</div>
+                    <div class="stat-label">Median publish time</div>
+                </div>
+            </div>
+
+            <blockquote class="about-quote reveal-item">
+                <p>Ship weekly. Learn daily. Repeat forever.</p>
+                <cite>— The Loopstack team</cite>
+            </blockquote>
+        </div>
+    </section>
+
+    <section class="view view-sub" id="view-features">
+        <div class="page">
+            <div class="kicker reveal-item">Features</div>
+            <h1 class="page-title" data-split="words">Everything you need to stay in the loop.</h1>
+
+            <div class="features-grid">
+                <article class="feature-card reveal-item">
+                    <span class="feature-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    </span>
+                    <h3 class="feature-title">Real-time sync</h3>
+                    <p class="feature-desc">Every branch of your work updates across devices the moment it changes.</p>
+                </article>
+
+                <article class="feature-card reveal-item">
+                    <span class="feature-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
+                    </span>
+                    <h3 class="feature-title">Smart automations</h3>
+                    <p class="feature-desc">Chain triggers and actions so routine steps run themselves.</p>
+                </article>
+
+                <article class="feature-card reveal-item">
+                    <span class="feature-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 12 12 17 22 12"></polyline><polyline points="2 17 12 22 22 17"></polyline></svg>
+                    </span>
+                    <h3 class="feature-title">Version everything</h3>
+                    <p class="feature-desc">Every iteration is snapshot-ready. Roll forward or back in one click.</p>
+                </article>
+
+                <article class="feature-card reveal-item">
+                    <span class="feature-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    </span>
+                    <h3 class="feature-title">Team spaces</h3>
+                    <p class="feature-desc">Shared loops for squads, with roles and granular permissions.</p>
+                </article>
+
+                <article class="feature-card reveal-item">
+                    <span class="feature-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                    </span>
+                    <h3 class="feature-title">Insight loops</h3>
+                    <p class="feature-desc">Built-in analytics close the loop between shipping and learning.</p>
+                </article>
+
+                <article class="feature-card reveal-item">
+                    <span class="feature-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+                    </span>
+                    <h3 class="feature-title">API &amp; webhooks</h3>
+                    <p class="feature-desc">First-class endpoints to plug Loopstack into anything.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="view view-sub" id="view-pricing">
+        <div class="page">
+            <div class="kicker reveal-item">Pricing</div>
+            <h1 class="page-title" data-split="words">Simple pricing, serious loops.</h1>
+
+            <div class="pricing-grid">
+                <article class="price-card reveal-item">
+                    <div class="tier">Starter</div>
+                    <div class="amount">RWF 0<span class="per">/mo</span></div>
+                    <p class="tier-desc">For solo builders testing the waters.</p>
+                    <ul class="feat-list">
+                        <li>1 workspace</li>
+                        <li>Up to 3 active loops</li>
+                        <li>Community support</li>
+                    </ul>
+                    <a href="#/contact" class="hero-btn btn-sm" data-nav>Start free</a>
+                </article>
+
+                <article class="price-card featured reveal-item">
+                    <span class="badge">Most popular</span>
+                    <div class="tier">Pro</div>
+                    <div class="amount">RWF 42,000<span class="per">/mo</span></div>
+                    <p class="tier-desc">For professionals who loop daily.</p>
+                    <ul class="feat-list">
+                        <li>Unlimited loops</li>
+                        <li>Smart automations</li>
+                        <li>Priority support</li>
+                        <li>Advanced insights</li>
+                    </ul>
+                    <a href="#/contact" class="hero-btn btn-sm btn-light" data-nav>Book a demo</a>
+                </article>
+
+                <article class="price-card reveal-item">
+                    <div class="tier">Enterprise</div>
+                    <div class="amount">Custom</div>
+                    <p class="tier-desc">For teams that need guarantees.</p>
+                    <ul class="feat-list">
+                        <li>SSO &amp; SAML</li>
+                        <li>Dedicated manager</li>
+                        <li>99.99% SLA</li>
+                    </ul>
+                    <a href="#/contact" class="hero-btn btn-sm" data-nav>Contact sales</a>
+                </article>
+            </div>
+
+            <p class="pricing-note reveal-item">All plans are free during the closed beta. Questions? <a href="#/contact" data-nav>Talk to us</a>.</p>
+        </div>
+    </section>
+
+    <section class="view view-sub" id="view-contact">
+        <div class="page page--center">
+            <div class="kicker reveal-item">Contact</div>
+            <h1 class="page-title contact-title" data-split="html">Say hello<span class="accent">.</span></h1>
+            <p class="page-sub reveal-item">Questions about the closed beta, demos or partnerships — we read everything ourselves.</p>
+
+            <a href="mailto:mugishadavid910@gmail.com" class="email-link reveal-item">mugishadavid910@gmail.com</a>
+
+            <div class="contact-channels reveal-item">
+                <a href="https://wa.me/250796888684?text=Hi%20there!" target="_blank" rel="noopener" class="channel-card">
+                    <span class="channel-icon">
+                        <svg width="16" height="18" viewBox="0 0 448 512" fill="currentColor"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"></path></svg>
+                    </span>
+                    <span class="channel-text">
+                        <span class="channel-label">WhatsApp</span>
+                        <span class="channel-value">+250 796 888 684</span>
+                    </span>
+                </a>
+                <a href="https://github.com/mugi-sha" target="_blank" rel="noopener" class="channel-card">
+                    <span class="channel-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+                    </span>
+                    <span class="channel-text">
+                        <span class="channel-label">GitHub</span>
+                        <span class="channel-value">github.com/mugi-sha</span>
+                    </span>
+                </a>
+                <a href="https://instagram.com/davidmenelik910" target="_blank" rel="noopener" class="channel-card">
+                    <span class="channel-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+                    </span>
+                    <span class="channel-text">
+                        <span class="channel-label">Instagram</span>
+                        <span class="channel-value">@davidmenelik910</span>
+                    </span>
+                </a>
+            </div>
+
+            <form class="contact-form reveal-item" id="contact-form" novalidate>
+                <div class="field">
+                    <label for="cf-name">Name</label>
+                    <input type="text" id="cf-name" name="name" placeholder="Ada Lovelace" autocomplete="name">
+                </div>
+                <div class="field">
+                    <label for="cf-email">Email</label>
+                    <input type="email" id="cf-email" name="email" placeholder="ada@example.com" autocomplete="email">
+                </div>
+                <div class="field">
+                    <label for="cf-message">Message</label>
+                    <textarea id="cf-message" name="message" rows="4" placeholder="Tell us about your loops..."></textarea>
+                </div>
+                <div class="form-error" id="form-error"></div>
+                <button type="submit" class="hero-btn">
+                    <span class="btn-text">Send message</span>
+                    <span class="blinking-dot"></span>
+                </button>
+            </form>
+
+            <div class="form-success" id="form-success">
+                <span class="success-icon">
+                    <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </span>
+                <div class="success-title">Message sent.</div>
+                <div class="success-note">We'll get back to you within 48 hours.</div>
+            </div>
+
+            <p class="reply-note reveal-item">We reply within 48 hours — usually faster.</p>
+        </div>
+    </section>
+
+    <footer class="bottombar" id="bottombar">
+        <div class="bottombar-left">© 2026 Loopstack</div>
+        <div class="bottombar-socials">
+            <a href="mailto:mugishadavid910@gmail.com" aria-label="Email" class="social-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            </a>
+            <a href="https://wa.me/250796888684?text=Hi%20there!" target="_blank" rel="noopener" aria-label="WhatsApp" class="social-icon">
+                <svg width="14" height="16" viewBox="0 0 448 512" fill="currentColor"><path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.4 17.7 68.9 27 106.1 27h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-32.6-16.3-54-29.1-75.5-66-5.7-9.8 5.7-9.1 16.3-30.3 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 35.2 15.2 49 16.5 66.6 13.9 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"></path></svg>
+            </a>
+            <a href="https://github.com/mugi-sha" target="_blank" rel="noopener" aria-label="GitHub" class="social-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
+            </a>
+            <a href="https://instagram.com/davidmenelik910" target="_blank" rel="noopener" aria-label="Instagram" class="social-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+            </a>
+        </div>
+    </footer>
+
+    <div class="video-container">
+        <video autoplay muted loop playsinline id="bg-video">
+            <source src="https://api.getlayers.ai/storage/v1/object/public/public/assets/loopstack-f8c64439bf/flower.mp4" type="video/mp4">
+            Ваш браузер не поддерживает видео.
+        </video>
+    </div>
+
+    <div id="cursor-ring" class="cursor-ring-outline"></div>
+
+    <script>
+        const splitWords = (el) => {
+            const parts = el.dataset.origHtml.split(/(\s+|<br\s*\/?>)/i);
+            el.innerHTML = '';
+
+            let wordIndex = 0;
+            parts.forEach(part => {
+                if (part.trim() === '') {
+                    el.appendChild(document.createTextNode(' '));
+                } else if (part.toLowerCase().startsWith('<br')) {
+                    el.appendChild(document.createElement('br'));
+                } else {
+                    const wrapper = document.createElement('span');
+                    wrapper.className = 'word-wrapper';
+
+                    const inner = document.createElement('span');
+                    inner.className = 'word-inner';
+                    inner.textContent = part;
+
+                    inner.style.animationDelay = `${wordIndex * 0.1}s`;
+                    wordIndex++;
+
+                    wrapper.appendChild(inner);
+                    el.appendChild(wrapper);
+                }
+            });
+        };
+
+        const splitLetters = (el) => {
+            const text = el.dataset.origText.trim();
+            el.innerHTML = '';
+
+            [...text].forEach((char, index) => {
+                const wrapper = document.createElement('span');
+                wrapper.className = 'letter-wrapper';
+
+                const inner = document.createElement('span');
+                inner.textContent = char === ' ' ? ' ' : char;
+                inner.className = 'letter-inner';
+
+                inner.style.animationDelay = `${index * 0.09}s`;
+
+                wrapper.appendChild(inner);
+                el.appendChild(wrapper);
+            });
+        };
+
+        const splitRichTitle = (el) => {
+            const parts = el.dataset.origHtml.split(/(<br\s*\/?>|\s+)/i);
+            el.innerHTML = '';
+
+            let wordIndex = 0;
+            parts.forEach(part => {
+                if (!part || part.trim() === '') return;
+
+                if (part.toLowerCase().startsWith('<br')) {
+                    el.appendChild(document.createElement('br'));
+                } else if (/^\s+$/.test(part)) {
+                    el.appendChild(document.createTextNode(' '));
+                } else {
+                    const wrapper = document.createElement('span');
+                    wrapper.className = 'word-wrapper';
+
+                    const inner = document.createElement('span');
+                    inner.className = 'word-inner';
+                    inner.style.animationDelay = `${wordIndex * 0.1}s`;
+                    inner.innerHTML = part;
+
+                    wordIndex++;
+                    wrapper.appendChild(inner);
+                    el.appendChild(wrapper);
+                }
+            });
+        };
+
+        const formatCounter = (el, value) => {
+            const decimals = parseInt(el.dataset.decimals || '0', 10);
+            const suffix = el.dataset.suffix || '';
+            const prefix = el.dataset.prefix || '';
+            return prefix + value.toLocaleString('en-US', {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            }) + suffix;
+        };
+
+        const restartCounters = (view) => {
+            view.querySelectorAll('[data-count]').forEach((el, i) => {
+                const target = parseFloat(el.dataset.count);
+                const dur = 1400;
+                const start = performance.now() + 500 + i * 150;
+
+                const step = (t) => {
+                    const p = Math.min(Math.max((t - start) / dur, 0), 1);
+                    const e = 1 - Math.pow(1 - p, 3);
+                    el.textContent = formatCounter(el, target * e);
+                    if (p < 1) requestAnimationFrame(step);
+                };
+                requestAnimationFrame(step);
+            });
+        };
+
+        const prepReveals = (view) => {
+            view.querySelectorAll('[data-split="words"]').forEach(splitWords);
+            view.querySelectorAll('[data-split="letters"]').forEach(splitLetters);
+            view.querySelectorAll('[data-split="html"]').forEach(splitRichTitle);
+
+            view.querySelectorAll('.reveal-item').forEach(el => el.classList.remove('in'));
+            view.querySelectorAll('.reveal-item').forEach((el, i) => {
+                setTimeout(() => el.classList.add('in'), 350 + i * 120);
+            });
+
+            restartCounters(view);
+
+            const scroller = view.classList.contains('view-sub') ? view : null;
+            if (scroller) scroller.scrollTop = 0;
+        };
+
+        const routes = ['home', 'about', 'features', 'pricing', 'contact'];
+        const parseHash = () => {
+            const h = location.hash.replace(/^#\/?/, '').replace(/\/$/, '');
+            return routes.includes(h) ? h : 'home';
+        };
+
+        let currentRoute = null;
+
+        const applyRouteState = (route) => {
+            document.body.dataset.route = route;
+            document.body.classList.toggle('at-home', route === 'home');
+
+            document.querySelectorAll('.topnav-link').forEach(link => {
+                link.classList.toggle('active', link.dataset.routeName === route);
+            });
+        };
+
+        const navigate = (route, instant = false) => {
+            if (route === currentRoute) return;
+
+            const prevView = currentRoute !== null ? document.getElementById(`view-${currentRoute}`) : null;
+            const nextView = document.getElementById(`view-${route}`);
+
+            const swap = () => {
+                if (prevView) prevView.classList.remove('active', 'leaving');
+
+                prepReveals(nextView);
+                applyRouteState(route);
+
+                nextView.classList.add('active', 'entering');
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => nextView.classList.remove('entering'));
+                });
+            };
+
+            if (instant || !prevView || prevView === nextView) {
+                swap();
+            } else {
+                prevView.classList.add('leaving');
+                setTimeout(swap, 320);
+            }
+
+            currentRoute = route;
+        };
+
+        window.addEventListener('hashchange', () => navigate(parseHash()));
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && currentRoute !== null && currentRoute !== 'home') {
+                location.hash = '#/';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('[data-split]').forEach(el => {
+                if (el.dataset.split === 'letters') {
+                    el.dataset.origText = el.textContent;
+                } else {
+                    el.dataset.origHtml = el.innerHTML;
+                }
+            });
+
+            document.querySelectorAll('a[href="#"]').forEach(a => {
+                a.addEventListener('click', e => e.preventDefault());
+            });
+
+            const form = document.getElementById('contact-form');
+            const successBox = document.getElementById('form-success');
+            const errorBox = document.getElementById('form-error');
+
+            if (form) {
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+
+                    const name = document.getElementById('cf-name').value.trim();
+                    const email = document.getElementById('cf-email').value.trim();
+                    const message = document.getElementById('cf-message').value.trim();
+                    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+                    errorBox.textContent = '';
+
+                    if (!name || !email || !message) {
+                        errorBox.textContent = 'Please fill in all fields.';
+                        return;
+                    }
+                    if (!emailOk) {
+                        errorBox.textContent = 'Please enter a valid email address.';
+                        return;
+                    }
+
+                    form.style.display = 'none';
+                    const note = document.querySelector('#view-contact .reply-note');
+                    if (note && note.style.display !== 'none') note.style.opacity = '0.001';
+                    successBox.classList.add('show');
+                });
+            }
+
+            const cursorRing = document.getElementById('cursor-ring');
+
+            if (window.matchMedia('(pointer: fine)').matches && cursorRing) {
+                let mouseX = window.innerWidth / 2;
+                let mouseY = window.innerHeight / 2;
+                let ringX = mouseX;
+                let ringY = mouseY;
+                let isFirstMove = true;
+                let scale = 0;
+                let targetScale = 0;
+
+                document.addEventListener('mousemove', (e) => {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+
+                    if (isFirstMove) {
+                        ringX = mouseX;
+                        ringY = mouseY;
+                        isFirstMove = false;
+                        cursorRing.classList.add('active');
+                    }
+
+                    targetScale = 1;
+                });
+
+                document.addEventListener('mouseleave', () => { targetScale = 0; });
+                document.addEventListener('mouseenter', () => { targetScale = 1; });
+
+                document.querySelectorAll('.hero-btn').forEach(btn => {
+                    btn.addEventListener('mouseenter', () => cursorRing.classList.add('expanded'));
+                    btn.addEventListener('mouseleave', () => cursorRing.classList.remove('expanded'));
+                });
+
+                document.querySelectorAll('.topnav-link, .social-icon, .brand, .footer-link, .feature-card, .price-card, .email-link').forEach(el => {
+                    el.addEventListener('mouseenter', () => cursorRing.classList.add('expanded'));
+                    el.addEventListener('mouseleave', () => cursorRing.classList.remove('expanded'));
+                });
+
+                const updatePhysics = () => {
+                    ringX = mouseX;
+                    ringY = mouseY;
+                    scale += (targetScale - scale) * 0.15;
+
+                    const currentRingScale = cursorRing.classList.contains('expanded') ? 1.6 * scale : scale;
+
+                    cursorRing.style.transform = `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%) scale(${currentRingScale})`;
+
+                    requestAnimationFrame(updatePhysics);
+                };
+
+                updatePhysics();
+            }
+
+            navigate(parseHash(), true);
+        });
+    </script>
+</body>
+</html>
